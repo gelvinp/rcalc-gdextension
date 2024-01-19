@@ -5,6 +5,10 @@
 #include "matrices.h"
 #include "newline_container.h"
 #include "help.h"
+#include "core/memory/allocator.h"
+#include "modules/register_modules.h"
+#include "core/logger.h"
+#include "logger.h"
 
 #include <gdextension_interface.h>
 #include <godot_cpp/core/defs.hpp>
@@ -14,6 +18,19 @@ using namespace godot;
 
 void initialize_rcalc_module(ModuleInitializationLevel p_level) {
     if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) { return; }
+
+    RCalc::initialize_modules();
+
+    // RCalc::Allocator::AllocFuncOverrides overrides = { // Not ready yet
+    //     [](size_t size) { return memalloc(size); },
+    //     [](void* ptr, size_t size) { return memrealloc(ptr, size); },
+    //     [](void* ptr) { memfree(ptr); }
+    // };
+    // RCalc::Allocator::set_func_overrides(overrides);
+
+    std::shared_ptr<GodotRCalcLogger> logger = RCalc::Allocator::make_shared<GodotRCalcLogger>();
+    logger->set_min_severity(RCalc::Logging::LOG_ERROR);
+    RCalc::Logger::set_global_engine(logger);
 
     GDREGISTER_CLASS(RCalcEngine);
     GDREGISTER_CLASS(RCalcStackItem);
@@ -31,6 +48,9 @@ void initialize_rcalc_module(ModuleInitializationLevel p_level) {
 
 void uninitialize_rcalc_module(ModuleInitializationLevel p_level) {
     if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) { return; }
+
+    RCalc::cleanup_modules();
+    RCalc::Logger::set_global_engine(nullptr);
 }
 
 extern "C" {

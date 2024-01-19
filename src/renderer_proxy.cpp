@@ -11,10 +11,16 @@
 
 namespace RCalc {
 
-Result<Renderer*> Renderer::create(const std::string_view& name, SubmitTextCallback cb_submit_text) {
+Result<Renderer*> Renderer::create(const AppConfig& config, SubmitTextCallback cb_submit_text) {
 	RCalcRendererProxy* p_addr = Allocator::create<RCalcRendererProxy>();
-    p_addr->cb_submit_text = cb_submit_text;
+    p_addr->early_init(config, cb_submit_text);
     return Ok(reinterpret_cast<Renderer*>(p_addr));
+}
+
+
+void RCalcRendererProxy::early_init(const AppConfig& config, SubmitTextCallback submit_text) {
+    // Set up logger
+    cb_submit_text = submit_text;
 }
 
 

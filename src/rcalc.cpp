@@ -25,6 +25,9 @@ void RCalcEngine::_bind_methods() {
     ClassDB::bind_static_method("RCalcEngine", D_METHOD("get_version_hash"), &RCalcEngine::get_version_hash);
     ClassDB::bind_static_method("RCalcEngine", D_METHOD("get_program_info"), &RCalcEngine::get_program_info);
 
+    ClassDB::bind_static_method("RCalcEngine", D_METHOD("global_set_precision", "precision"), &RCalcEngine::global_set_precision);
+    ClassDB::bind_static_method("RCalcEngine", D_METHOD("global_set_verbosity", "verbosity"), &RCalcEngine::global_set_verbosity);
+
     ADD_SIGNAL(MethodInfo("display_info", PropertyInfo(Variant::STRING, "info")));
     ADD_SIGNAL(MethodInfo("display_error", PropertyInfo(Variant::STRING, "error")));
 
@@ -34,7 +37,9 @@ void RCalcEngine::_bind_methods() {
 }
 
 RCalcEngine::RCalcEngine() {
-    p_application = RCalc::Application::create(RCalc::AppConfig()).unwrap();
+    p_application = RCalc::Allocator::create<RCalc::Application>();
+    p_application->set_max_stack_size(10000);
+    p_application->early_init(RCalc::AppConfig());
     p_application->init();
     p_application->run();
     reinterpret_cast<RCalc::RCalcRendererProxy*>(p_application->get_renderer())->p_engine = this;
@@ -168,6 +173,28 @@ String RCalcEngine::get_program_info() {
     return String(RCalc::HelpText::program_info);
 }
 
+void RCalcEngine::global_set_precision(int precision) {
+    RCalc::Value::set_precision(precision);
+}
+
+std::shared_ptr<GodotRCalcLogger> RCalcEngine::logger = nullptr;
+void RCalcEngine::global_set_verbosity(int verbosity) {
+    if (logger) {
+        switch (verbosity) {
+            case 0:
+                logger->set_min_severity(RCalc::Logging::LOG_VERBOSE);
+                break;
+            case 1:
+                logger->set_min_severity(RCalc::Logging::LOG_STANDARD);
+                break;
+            case 2:
+                logger->set_min_severity(RCalc::Logging::LOG_ERROR);
+                break;
+        }
+    }
+}
+
 RCalcEngine::~RCalcEngine() {
+    p_application->cleanup();
     RCalc::Allocator::destroy(p_application);
 }

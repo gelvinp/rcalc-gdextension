@@ -8,6 +8,7 @@
 #include "app/autocomplete.h"
 #include "help.h"
 #include "core/memory/cowvec.h"
+#include "logger.h"
 
 using namespace godot;
 
@@ -33,6 +34,9 @@ public:
     static String get_version_hash();
     static String get_program_info();
 
+    static void global_set_precision(int precision);
+    static void global_set_verbosity(int verbosity);
+
 protected:
     static void _bind_methods();
 
@@ -53,4 +57,6 @@ private:
 public:
     RCalcEngine();
     ~RCalcEngine();
+
+    static std::shared_ptr<GodotRCalcLogger> logger;
 };

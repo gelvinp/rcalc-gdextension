@@ -105,7 +105,7 @@ void RCalcHelpOperator::cache_examples() {
 
         for (const char* param : example_params) {
             RCalc::Value value = RCalc::Value::parse(param).value();
-            stack.push_item(RCalc::StackItem { RCalc::create_displayables_from(value), std::move(value), false });
+            stack.try_push_item(RCalc::StackItem { RCalc::create_displayables_from(value), std::move(value), false });
         }
 
         std::string op_name = RCalc::filter_name(name.utf8().get_data());
